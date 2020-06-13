@@ -1,4 +1,5 @@
 
+
 #!/bin/bash -x
 
 SPACE="."
@@ -180,22 +181,24 @@ fi
 echo "turn"
 }
 
-function checkIfComputerWins {
+function checkIfSomeOneWins {
 	
 	local row
 	local column
+	local computersymbol=$1
+	local opponentSymbol=$2
 	for (( row=1;row<=3;row++ ))
 	do
 		for (( column=1;column<=3;column++ ))
 		do
 			if [ ${board[$row,$column]} = $SPACE ]
 			then		
-				board[$row,$column]=$computerSymbol
+				board[$row,$column]=$opponentSymbol
 				isWon $row $column
 				local won=$?
 				if [ $won -eq 1 ]
 				then
-					echo "$computerSymbol won"
+					board[$row,$column]=$computerSymbol
 					return 1
 				else
 					board[$row,$column]=$SPACE
@@ -208,13 +211,15 @@ function checkIfComputerWins {
 
 
 initialiseEmptyBoard
-board[1,1]="X"
+board[1,3]="X"
 board[3,3]="X"
 displayBoard
 read playerSymbol computerSymbol< <(getSymbolForPlayer)
 echo $playerSymbol $computerSymbol
-checkIfComputerWins
+checkIfComputerWins $computerSymbol $playerSymbol
 win=$?
 echo $win
+
+displayBoard
 
 
