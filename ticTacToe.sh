@@ -377,3 +377,39 @@ function giveTurnToComputer {
 
 }
 
+
+function startTicTacToe {
+	initialiseEmptyBoard
+	displayBoard
+	read playerSymbol computerSymbol< <(getSymbolForPlayer)
+	echo "Player Symbol ="$playerSymbol 
+	echo "computer Symbol ="$computerSymbol
+	chance=$((RAMDOM%2))
+	echo "chance = "$chance
+	while [ 1 -eq 1 ]
+	do	
+		if [ $chance -eq 1 ]
+		then
+			giveTurnToPlayer $playerSymbol
+			if [ $? -eq 0 ]
+			then
+				break
+			fi		
+			displayBoard
+			echo
+			chance=0	
+		else
+			giveTurnToComputer
+			if [ $? -eq 0 ]
+			then
+				break
+			fi
+			displayBoard
+
+			chance=1	 
+		fi
+	done
+}
+
+startTicTacToe
+displayBoard
