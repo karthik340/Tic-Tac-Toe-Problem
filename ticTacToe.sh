@@ -6,6 +6,8 @@ declare -A board
 
 
 function initialiseEmptyBoard {
+	local row
+	local column
 	for (( row=1;row<=3;row++))
 	do
 		for (( column=1;column<=3;column++ ))
@@ -17,6 +19,8 @@ function initialiseEmptyBoard {
 
 
 function displayBoard {
+	local row
+	local column
 	for (( row=1;row<=3;row++))
 	do
 		for (( column=1;column<=3;column++ ))
@@ -42,8 +46,139 @@ function getSymbolForPlayer {
 	then
 		echo "X"
 	else
-		echo "0"
+		echo "O"
 	fi
+}
+
+
+function checkIsRowEqual {
+
+	local row=$1
+	local sameRow=1
+	local column
+	for (( column=1;column<=2;column++ ))
+	do
+		if [ ${board[$row,$column]} != ${board[$row,$(($column+1))]} ] || [[ ${board[$row,$column]} = $SPACE ]]
+		then
+			sameRow=0
+			break
+		fi
+	done
+	return $sameRow
+
+}
+
+function checkIsColumnEqual {
+
+	local column=$1
+	local sameColumn=1
+	local row
+	for (( row=1;row<=2;row++ ))
+	do
+		if [ ${board[$row,$column]} != ${board[$(($row+1)),$column]} ] || [[ ${board[$row,$column]} = $SPACE ]]
+		then
+			sameColumn=0
+			break
+		fi
+	done
+	return $sameColumn
+}
+
+function isDiagonal_1_Equal {
+	
+	local row=$1
+	local column=$2
+	local sameDiagonal=1
+	if [ $row -eq $column ]
+	then
+		for (( row=1;row<=2;row++ ))
+		do
+			if [ ${board[$row,$row]} != ${board[$(($row+1)),$(($row+1))]} ] || [[ ${board[$row,$column]} = $SPACE ]]
+			then
+				sameDiagonal=0
+				break
+			fi	
+		done
+	else
+		return 0
+	fi
+	return $sameDiagonal
+}
+
+
+function isDiagonal_2_Equal {
+
+	local row
+	local column
+	local sameDiagonal=1
+	for (( row=3,column=1;row>=2;row--,column++ ))
+	do
+		if [ ${board[$row,$column]} != ${board[$(($row-1)),$(($column+1))]} ] || [[ ${board[$row,$column]} = $SPACE ]]
+			then
+				sameDiagonal=0
+				break
+			fi		
+	done
+	return $sameDiagonal
+}
+
+function isWon {
+
+local row=$1
+local column=$2
+checkIsRowEqual $row
+local rowEqual=$?
+echo "column"$column
+checkIsColumnEqual $column
+local columnEqual=$?
+isDiagonal_1_Equal $row $column
+local diagonal_1_Equal=$?
+isDiagonal_2_Equal 
+local diagonal_2_Equal=$?
+
+if [ $rowEqual -eq 1 -o $columnEqual -eq 1 -o $diagonal_1_Equal -eq 1 -o $diagonal_2_Equal -eq 1 ]
+then
+	return 1
+else
+	return 0
+fi
+
+}
+
+
+function isTie {
+	local row
+	local column
+	for (( row=1;row<=3;row++ ))
+	do
+		for (( column=1;column<=3;column++ ))
+		do
+			if [[ "${board[$row,$column]}" = $SPACE ]]
+			then
+				return 0
+			fi
+		done
+	done
+	return 1
+}
+
+function getDecision {
+
+local row=$1
+local column=$2
+isWon $row $column
+won=$?
+if [ $won -eq 1 ]
+then
+	echo "won"
+fi
+isTie
+tie=$?
+if [ $tie -eq 1 ]
+then
+	echo "tie"
+fi
+echo "turn"
 }
 
 initialiseEmptyBoard
@@ -53,4 +188,6 @@ echo $playerSymbol
 chance=$(getSymbolForPlayer)
 echo "chance given to "$chance
 
+decision=$(getDecision 1 3)
+echo $decision
 
