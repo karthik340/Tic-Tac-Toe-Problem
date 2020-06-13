@@ -13,4 +13,17 @@ function initialiseEmptyBoard {
 	done
 }
 
+function getSymbolForPlayer {
+
+	if [ $((RANDOM%2)) -eq 1 ]
+	then
+		echo "X"
+	else
+		echo "0"
+	fi
+}
 initialiseEmptyBoard
+playerSymbol=$(getSymbolForPlayer)
+echo $playerSymbol
+
+
