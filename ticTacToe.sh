@@ -182,24 +182,24 @@ echo "turn"
 
 
 
-function checkIfSomeOneWins {
+function checkIfSomeOneMayWin {
 	
 	local row
 	local column
-	local computerSymbol=$1
-	local opponentSymbol=$2
+	local replaceSymbol=$1
+	local checkSymbol=$2
 	for (( row=1;row<=3;row++ ))
 	do
 		for (( column=1;column<=3;column++ ))
 		do
 			if [ ${board[$row,$column]} = $SPACE ]
 			then		
-				board[$row,$column]=$opponentSymbol
+				board[$row,$column]=$checkSymbol
 				isWon $row $column
 				local won=$?
 				if [ $won -eq 1 ]
 				then
-					board[$row,$column]=$computerSymbol
+					board[$row,$column]=$replaceSymbol
 					return 1
 				else
 					board[$row,$column]=$SPACE
@@ -212,7 +212,7 @@ function checkIfSomeOneWins {
 
 
 function checkForCornersAndPlace {
-	local computersymbol=$1
+
 	local size=3
 	local row
 	local column
@@ -220,17 +220,18 @@ function checkForCornersAndPlace {
 	do
 		for (( column=1;column<4;column=column+2))
 		do
-			if [ ${board[$row,$column]} = $SPACE ]
+			fillPositionInBoard $row $column $computerSymbol
+			local filled=$?
+			if [ $filled -eq 1 ]
 			then
-				board[$row,$column]=$computersymbol
-				return 1
-			fi 
+			return 1
+			fi
 		done
 	done
 	return 0
 }
 
-function takeCentre {
+function checkCentre {
 
 local computerSymbol=$1
 local row=2
@@ -244,15 +245,135 @@ return 0;
 }
 
 
+function fillPositionInBoard {
+	
+	local row=$1
+	local column=$2
+	local symbol=$3
+	if [ ${board[$row,$column]} = $SPACE ]	
+	then
+		board[$row,$column]=$symbol
+		return 1
+	fi 
+	return 0
 
-initialiseEmptyBoard
-board[1,1]="X"
-board[1,3]="X"
-board[3,1]="X"
-board[3,3]="X"
-displayBoard
-read playerSymbol computerSymbol< <(getSymbolForPlayer)
-echo $playerSymbol $computerSymbol
-takeCentre $computerSymbol
-displayBoard
+}
+
+
+function takeAnySide {
+
+
+local row
+local column=1
+local size=3
+for (( row=2;row<size;row++ ))
+do
+	if [ ${board[$row,$column]} = $SPACE ]
+			then
+				board[$row,$column]=$computerSymbol
+				return 1
+			fi 
+done
+column=$(($size))
+for (( row=2;row<size;row++ ))
+do
+	if [ ${board[$row,$column]} = $SPACE ]
+			then
+				board[$row,$column]=$computerSymbol
+				return 1
+			fi 
+done
+
+row=1
+for (( column=2;column<size;column++ ))
+do
+	if [ ${board[$row,$column]} = $SPACE ]
+			then
+				board[$row,$column]=$computerSymbol
+				return 1
+			fi 
+done
+
+row=$(($size))
+for (( column=2;column<size;column++ ))
+do
+	if [ ${board[$row,$column]} = $SPACE ]
+			then
+				board[$row,$column]=$computerSymbol
+				return 1
+			fi 
+done
+
+
+
+
+}
+
+
+
+
+
+
+
+
+function giveTurnToPlayer {
+	local playerSymbol=$1
+	local row
+	local filled=0
+	local column
+	while [ $filled -eq 0 ]
+	do
+		read -p "enter row" row
+		read -p "enter column" column
+		fillPositionInBoard $row $column $playerSymbol
+		filled=$?
+	done
+	result=$(getDecision $row $column)
+	if [ result = "won" ]
+	then
+		echo "you won"
+		return 0
+	elif [ result = "loss" ]
+	then
+		echo "tie"
+		return 0
+	else
+		return 1
+	fi
+}
+
+function giveTurnToComputer {
+	
+	local row
+	local filled=0
+	local column
+	checkIfSomeOneMayWin $computerSymbol $computerSymbol
+	if [ $? -eq 1 ]
+	then 
+		return 0	
+	fi
+	checkIfSomeOneMayWin $playerSymbol $computerSymbol
+	if [ $? -eq 1 ]
+	then 
+		return 1	
+	fi
+	checkForCornersAndPlace
+	if [ $? -eq 1 ]
+	then
+		return 1
+	fi	
+	checkCentre
+	if [ $? -eq 1 ]
+	then
+		return 1
+	fi	
+	
+	takeAnySide
+	if [ $? -eq 1 ]
+	then
+		return 1
+	fi
+
+
+}
 
