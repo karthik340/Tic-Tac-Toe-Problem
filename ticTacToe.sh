@@ -181,11 +181,13 @@ fi
 echo "turn"
 }
 
+
+
 function checkIfSomeOneWins {
 	
 	local row
 	local column
-	local computersymbol=$1
+	local computerSymbol=$1
 	local opponentSymbol=$2
 	for (( row=1;row<=3;row++ ))
 	do
@@ -210,16 +212,36 @@ function checkIfSomeOneWins {
 }
 
 
+function checkForCornersAndPlace {
+	local computersymbol=$1
+	local size=3
+	local row
+	local column
+	for (( row=1;row<4;row=row+2 ))
+	do
+		for (( column=1;column<4;column=column+2))
+		do
+			if [ ${board[$row,$column]} = $SPACE ]
+			then
+				board[$row,$column]=$computersymbol
+				return 1
+			fi 
+		done
+	done
+	return 0
+}
+
 initialiseEmptyBoard
+board[1,1]="X"
 board[1,3]="X"
+board[3,1]="X"
 board[3,3]="X"
 displayBoard
 read playerSymbol computerSymbol< <(getSymbolForPlayer)
 echo $playerSymbol $computerSymbol
-checkIfComputerWins $computerSymbol $playerSymbol
-win=$?
-echo $win
-
+checkForCornersAndPlace $computerSymbol
 displayBoard
+
+
 
 
