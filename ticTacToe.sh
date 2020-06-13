@@ -1,7 +1,10 @@
+check who plays first
+
 #!/bin/bash -x
 
 SPACE=" "
 declare -A board
+
 
 function initialiseEmptyBoard {
 	for (( row=1;row<=3;row++))
@@ -22,8 +25,9 @@ function getSymbolForPlayer {
 		echo "0"
 	fi
 }
+
 initialiseEmptyBoard
 playerSymbol=$(getSymbolForPlayer)
 echo $playerSymbol
-
-
+chance=$(getSymbolForPlayer)
+echo "chance given to "$chance
