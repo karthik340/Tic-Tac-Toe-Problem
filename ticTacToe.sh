@@ -1,5 +1,4 @@
 
-
 #!/bin/bash -x
 
 SPACE="."
@@ -231,6 +230,21 @@ function checkForCornersAndPlace {
 	return 0
 }
 
+function takeCentre {
+
+local computerSymbol=$1
+local row=2
+local column=2
+if [ ${board[$row,$column]} = $SPACE ]
+then
+	board[$row,$column]=$computerSymbol
+	return 1
+fi 
+return 0;
+}
+
+
+
 initialiseEmptyBoard
 board[1,1]="X"
 board[1,3]="X"
@@ -239,9 +253,6 @@ board[3,3]="X"
 displayBoard
 read playerSymbol computerSymbol< <(getSymbolForPlayer)
 echo $playerSymbol $computerSymbol
-checkForCornersAndPlace $computerSymbol
+takeCentre $computerSymbol
 displayBoard
-
-
-
 
