@@ -3,14 +3,20 @@
 
 SPACE="."
 declare -A board
+TRUE=1
+FALSE=0
+WON=1
+TIE=2
+TURN=3
+
 
 
 function initialiseEmptyBoard {
 	local row
 	local column
-	for (( row=1;row<=3;row++))
+	for (( row=1;row<=$SIZE_OF_BOARD;row++))
 	do
-		for (( column=1;column<=3;column++ ))
+		for (( column=1;column<=$SIZE_OF_BOARD;column++ ))
 		do
 			board[$row,$column]=$SPACE
 		done
@@ -21,22 +27,25 @@ function initialiseEmptyBoard {
 function displayBoard {
 	local row
 	local column
-	for (( row=1;row<=3;row++))
+	for (( row=1;row<=$SIZE_OF_BOARD;row++))
 	do
-		for (( column=1;column<=3;column++ ))
+		for (( column=1;column<=$SIZE_OF_BOARD;column++ ))
 		do
 			echo -n " ${board[$row,$column]}"
-			if [ $column -ne 3 ]
+			if [ $column -ne $SIZE_OF_BOARD ]
 			then
 				echo -n " |"
 			fi			
 		done
 		echo
-		if [ $row -ne 3 ]
+		if [ $row -ne $SIZE_OF_BOARD ]
 		then
-		echo -n "------------"
-		echo
+			for (( index=1;index<=$SIZE_OF_BOARD;index++))
+			do
+				echo -n "----"
+			done
 		fi
+		echo
 	done
 }
 
@@ -51,96 +60,85 @@ function getSymbolForPlayer {
 }
 
 
-function checkIsRowEqual {
+function checkRow {
 
 	local row=$1
-	local sameRow=1
+	local sameRow=$TRUE
 	local column
-	for (( column=1;column<=2;column++ ))
+	for (( column=1;column<=$(($SIZE_OF_BOARD-1));column++ ))
 	do
 		if [[ ${board[$row,$column]} != ${board[$row,$(($column+1))]} ]] || [ "${board[$row,$column]}" = $SPACE ]
 		then
-			sameRow=0
+			sameRow=$FALSE
 			break
 		fi
 	done
-	return $sameRow
+	echo $sameRow
 
 }
 
-function checkIsColumnEqual {
+function checkColumn {
 
 	local column=$1
-	local sameColumn=1
+	local sameColumn=$TRUE
 	local row
-	for (( row=1;row<=2;row++ ))
+	for (( row=1;row<=$(($SIZE_OF_BOARD-1));row++ ))
 	do
 		if [[ ${board[$row,$column]} != ${board[$(($row+1)),$column]} ]] || [ "${board[$row,$column]}" = $SPACE ]
 		then
-			sameColumn=0
+			sameColumn=$FALSE
 			break
 		fi
 	done
-	return $sameColumn
+	echo $sameColumn
 }
 
-function isDiagonal_1_Equal {
+function isDiagonal {
 	
-	local row=$1
-	local column=$2
-	local sameDiagonal=1
-	if [ $row -eq $column ]
-	then
-		for (( row=1;row<=2;row++ ))
-		do
-			if [[ ${board[$row,$row]} != ${board[$(($row+1)),$(($row+1))]} ]] || [ ${board[$row,$row]} = $SPACE ]
-			then
-				sameDiagonal=0
-				break
-			fi	
-		done
-	else
-		return 0
-	fi
-	return $sameDiagonal
-}
-
-
-function isDiagonal_2_Equal {
-
 	local row
 	local column
-	local sameDiagonal=1
-	for (( row=3,column=1;row>=2;row--,column++ ))
+	local sameDiagonal1=$TRUE
+	local sameDiagonal2=$TRUE
+	
+	for (( row=1,column=$SIZE_OF_BOARD;row<=$(($SIZE_OF_BOARD-1));row++,column-- ))
 	do
-		if [[ ${board[$row,$column]} != ${board[$(($row-1)),$(($column+1))]} ]] || [ ${board[$row,$column]} = $SPACE ]
-			then
-				sameDiagonal=0
-				break
-			fi		
-	done
-	return $sameDiagonal
+		if [[ ${board[$row,$row]} != ${board[$(($row+1)),$(($row+1))]} ]] || [ ${board[$row,$row]} = $SPACE ]
+		then
+			sameDiagonal1=$FALSE
+		fi
+		if [[ ${board[$row,$column]} != ${board[$(($row+1)),$(($column-1))]} ]] || [ ${board[$row,$column]} = $SPACE ]
+		then
+			sameDiagonal2=$FALSE
+		fi		
+	done	
+	
+	if [ $sameDiagonal1 -eq $TRUE -o $sameDiagonal2 -eq $TRUE ]
+	then
+		return $TRUE
+	else
+		return $FALSE
+	fi
+
 }
+
+
 
 function isWon {
 
-local row=$1
-local column=$2
-checkIsRowEqual $row
-local rowEqual=$?
-checkIsColumnEqual $column
-local columnEqual=$?
-isDiagonal_1_Equal $row $column
-local diagonal_1_Equal=$?
-isDiagonal_2_Equal 
-local diagonal_2_Equal=$?
+	local row=$1
+	local column=$2
+	local rowEqual=$(checkRow $row)
+	local columnEqual=$(checkColumn $column)
 
-if [ $rowEqual -eq 1 -o $columnEqual -eq 1 -o $diagonal_1_Equal -eq 1 -o $diagonal_2_Equal -eq 1 ]
-then
-	return 1
-else
-	return 0
-fi
+	isDiagonal
+	local diagonal=$?	
+
+	if [ $rowEqual -eq $TRUE -o $columnEqual -eq $TRUE -o $diagonal -eq $TRUE ]
+	then
+		return $TRUE
+	else
+		return $FALSE
+	fi
 
 }
 
@@ -148,36 +146,35 @@ fi
 function isTie {
 	local row
 	local column
-	for (( row=1;row<=3;row++ ))
+	for (( row=1;row<=$SIZE_OF_BOARD;row++ ))
 	do
-		for (( column=1;column<=3;column++ ))
+		for (( column=1;column<=$SIZE_OF_BOARD;column++ ))
 		do
 			if [ ${board[$row,$column]} = $SPACE ]
 			then
-				return 0
+				return $FALSE
 			fi
 		done
 	done
-	return 1
+	return $TRUE
 }
 
 function getDecision {
 
-local row=$1
-local column=$2
-isWon $row $column
-won=$?
-if [ $won -eq 1 ]
-then
-	echo "won"
-fi
-isTie
-tie=$?
-if [ $tie -eq 1 ]
-then
-	echo "tie"
-fi
-echo "turn"
+	local row=$1
+	local column=$2
+	isWon $row $column
+	if [ $? -eq $TRUE ]
+	then
+		return $WON
+	
+	fi
+	isTie
+	if [ $? -eq $TRUE ]
+	then
+		return $TIE
+	fi
+	return $TURN
 }
 
 
@@ -186,62 +183,59 @@ function checkIfSomeOneMayWin {
 	
 	local row
 	local column
-	local replaceSymbol=$1
-	local checkSymbol=$2
-	for (( row=1;row<=3;row++ ))
+	local replaceSymbol=$2
+	local checkSymbol=$1
+	for (( row=1;row<=$SIZE_OF_BOARD;row++ ))
 	do
-		for (( column=1;column<=3;column++ ))
+		for (( column=1;column<=$SIZE_OF_BOARD;column++ ))
 		do
 			if [ ${board[$row,$column]} = $SPACE ]
 			then		
 				board[$row,$column]=$checkSymbol
 				isWon $row $column
-				local won=$?
-				if [ $won -eq 1 ]
+				if [ $? -eq $TRUE ]
 				then
 					board[$row,$column]=$replaceSymbol
-					return 1
+					return $TRUE
 				else
 					board[$row,$column]=$SPACE
 				fi
 			fi
 		done
 	done
-	return 0
+	return $FALSE
 }
 
 
 function checkForCornersAndPlace {
 
-	local size=3
+	local size=$SIZE_OF_BOARD
 	local row
 	local column
-	for (( row=1;row<4;row=row+2 ))
+	for (( row=1;row<$(($SIZE_OF_BOARD+1));row=row+$(($SIZE_OF_BOARD-1)) ))
 	do
-		for (( column=1;column<4;column=column+2))
+		for (( column=1;column<$(($SIZE_OF_BOARD+1));column=column+$(($SIZE_OF_BOARD+1))))
 		do
 			fillPositionInBoard $row $column $computerSymbol
-			local filled=$?
-			if [ $filled -eq 1 ]
+			if [ $? -eq $TRUE ]
 			then
-			return 1
+				return $TRUE	
 			fi
 		done
 	done
-	return 0
+	return $FALSE
 }
 
 function checkCentre {
 
-local computerSymbol=$1
-local row=2
-local column=2
-if [ ${board[$row,$column]} = $SPACE ]
-then
-	board[$row,$column]=$computerSymbol
-	return 1
-fi 
-return 0;
+	local row=$(($(($SIZE_OF_BOARD+1))/2))
+	local column=$(($(($SIZE_OF_BOARD+1))/2))
+	if [ ${board[$row,$column]} = $SPACE ]
+	then
+		board[$row,$column]=$computerSymbol
+		return $TRUE
+	fi 
+	return $FALSE
 }
 
 
@@ -253,9 +247,9 @@ function fillPositionInBoard {
 	if [ ${board[$row,$column]} = $SPACE ]	
 	then
 		board[$row,$column]=$symbol
-		return 1
+		return $TRUE
 	fi 
-	return 0
+	return $FALSE
 
 }
 
@@ -265,47 +259,31 @@ function takeAnySide {
 
 local row
 local column=1
-local size=3
-for (( row=2;row<size;row++ ))
-do
-	if [ ${board[$row,$column]} = $SPACE ]
+local size=$SIZE_OF_BOARD
+
+for (( row=1;row<=$SIZE_OF_BOARD;row++))
+	do
+		for (( column=1;column<=$SIZE_OF_BOARD;column++ ))
+		do
+			if [ $row -eq 1 ] || [ $row -eq $SIZE_OF_BOARD ] && [ $column -ne 1 -a $column -ne $SIZE_OF_BOARD ] 
 			then
-				board[$row,$column]=$computerSymbol
-				return 1
-			fi 
-done
-column=$(($size))
-for (( row=2;row<size;row++ ))
-do
-	if [ ${board[$row,$column]} = $SPACE ]
+				if [ ${board[$row,$column]} = $SPACE ]
+				then
+					board[$row,$column]=$computerSymbol
+				return $TRUE
+				fi 	
+			fi
+			
+			if [ $column -eq 1 ] || [ $column -eq $SIZE_OF_BOARD ] && [ $row -ne 1 -a $row -ne $SIZE_OF_BOARD ] 
 			then
-				board[$row,$column]=$computerSymbol
-				return 1
-			fi 
-done
-
-row=1
-for (( column=2;column<size;column++ ))
-do
-	if [ ${board[$row,$column]} = $SPACE ]
-			then
-				board[$row,$column]=$computerSymbol
-				return 1
-			fi 
-done
-
-row=$(($size))
-for (( column=2;column<size;column++ ))
-do
-	if [ ${board[$row,$column]} = $SPACE ]
-			then
-				board[$row,$column]=$computerSymbol
-				return 1
-			fi 
-done
-
-
-
+				if [ ${board[$row,$column]} = $SPACE ]
+				then
+					board[$row,$column]=$computerSymbol
+				return $TRUE
+				fi 	
+			fi
+		done
+	done
 
 }
 
@@ -319,26 +297,27 @@ done
 function giveTurnToPlayer {
 	local playerSymbol=$1
 	local row
-	local filled=0
+	local filled=$FALSE
 	local column
-	while [ $filled -eq 0 ]
+	while [ $filled -eq $FALSE ]
 	do
 		read -p "enter row" row
 		read -p "enter column" column
 		fillPositionInBoard $row $column $playerSymbol
 		filled=$?
 	done
-	result=$(getDecision $row $column)
-	if [ result = "won" ]
+	getDecision $row $column
+	result=$?
+	if [ $result = $WON ]
 	then
 		echo "you won"
-		return 0
-	elif [ result = "loss" ]
+		return $TRUE
+	elif [ $result = $TIE ]
 	then
 		echo "tie"
-		return 0
+		return $TRUE
 	else
-		return 1
+		return $FALSE
 	fi
 }
 
@@ -348,30 +327,29 @@ function giveTurnToComputer {
 	local filled=0
 	local column
 	checkIfSomeOneMayWin $computerSymbol $computerSymbol
-	if [ $? -eq 1 ]
-	then 
-		return 0	
+	if [ $? -eq $TRUE ]
+	then 	echo "computer won"
+		return $TRUE	
 	fi
-	checkIfSomeOneMayWin $playerSymbol $computerSymbol
-	if [ $? -eq 1 ]
+	checkIfSomeOneMayWin $playerSymbol $computerSymbol    
+	if [ $? -eq $TRUE ]
 	then 
-		return 1	
+		return $FALSE	
 	fi
 	checkForCornersAndPlace
-	if [ $? -eq 1 ]
+	if [ $? -eq $TRUE ]
 	then
-		return 1
+		return $FALSE
 	fi	
 	checkCentre
-	if [ $? -eq 1 ]
+	if [ $? -eq $TRUE ]
 	then
-		return 1
+		return $FALSE
 	fi	
-	
 	takeAnySide
-	if [ $? -eq 1 ]
+	if [ $? -eq $TRUE ]
 	then
-		return 1
+		return $FALSE
 	fi
 
 
@@ -381,35 +359,43 @@ function giveTurnToComputer {
 function startTicTacToe {
 	initialiseEmptyBoard
 	displayBoard
+	local exit1
 	read playerSymbol computerSymbol< <(getSymbolForPlayer)
 	echo "Player Symbol ="$playerSymbol 
 	echo "computer Symbol ="$computerSymbol
-	chance=$((RAMDOM%2))
+	chance=$((RANDOM%2))
 	echo "chance = "$chance
-	while [ 1 -eq 1 ]
+	quit=$FALSE
+	while [ $FALSE -eq $quit ]
 	do	
-		if [ $chance -eq 1 ]
+		if [[ $chance -eq $FALSE ]]
 		then
+			chance=$TRUE
 			giveTurnToPlayer $playerSymbol
-			if [ $? -eq 0 ]
-			then
-				break
-			fi		
-			displayBoard
-			echo
-			chance=0	
+			quit=$?
+				
 		else
-			giveTurnToComputer
-			if [ $? -eq 0 ]
+			chance=$FALSE
+			giveTurnToComputer	
+			if [ $? -eq $FALSE ]
 			then
-				break
+				isTie
+				if [ $? -eq $TRUE ]
+				then
+			     		echo "tie"
+					quit=$TRUE		
+				fi
+			else
+				quit=$TRUE
 			fi
-			displayBoard
-
-			chance=1	 
+					
 		fi
+		displayBoard
+		echo
 	done
 }
 
+read -p "Enter size of board" SIZE_OF_BOARD
 startTicTacToe
-displayBoard
+
+
