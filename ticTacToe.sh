@@ -212,9 +212,9 @@ function checkForCornersAndPlace {
 	local size=$SIZE_OF_BOARD
 	local row
 	local column
-	for (( row=1;row<$(($SIZE_OF_BOARD+1));row=row+$(($SIZE_OF_BOARD-1)) ))
+	for (( row=1;row<$(($size+1));row=row+$(($size-1)) ))
 	do
-		for (( column=1;column<$(($SIZE_OF_BOARD+1));column=column+$(($SIZE_OF_BOARD+1))))
+		for (( column=1;column<$(($size+1));column=column+$(($size-1))))
 		do
 			fillPositionInBoard $row $column $computerSymbol
 			if [ $? -eq $TRUE ]
@@ -265,7 +265,7 @@ for (( row=1;row<=$SIZE_OF_BOARD;row++))
 	do
 		for (( column=1;column<=$SIZE_OF_BOARD;column++ ))
 		do
-			if [ $row -eq 1 ] || [ $row -eq $SIZE_OF_BOARD ] && [ $column -ne 1 -a $column -ne $SIZE_OF_BOARD ] 
+			if { [ $row -eq 1 ] || [ $row -eq $SIZE_OF_BOARD ] ;} && [ $column -ne 1 -a $column -ne $SIZE_OF_BOARD ] 
 			then
 				if [ ${board[$row,$column]} = $SPACE ]
 				then
@@ -274,7 +274,7 @@ for (( row=1;row<=$SIZE_OF_BOARD;row++))
 				fi 	
 			fi
 			
-			if [ $column -eq 1 ] || [ $column -eq $SIZE_OF_BOARD ] && [ $row -ne 1 -a $row -ne $SIZE_OF_BOARD ] 
+			if { [ $column -eq 1 ] || [ $column -eq $SIZE_OF_BOARD ] ;} && [ $row -ne 1 -a $row -ne $SIZE_OF_BOARD ] 
 			then
 				if [ ${board[$row,$column]} = $SPACE ]
 				then
