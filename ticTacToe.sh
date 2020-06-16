@@ -159,7 +159,7 @@ function isTie {
 	return $TRUE
 }
 
-function getDecision {
+function getWinTieTurn {
 
 	local row=$1
 	local column=$2
@@ -300,13 +300,19 @@ function giveTurnToPlayer {
 	local filled=$FALSE
 	local column
 	while [ $filled -eq $FALSE ]
-	do
+	do	
+		
 		read -p "enter row" row
 		read -p "enter column" column
 		fillPositionInBoard $row $column $playerSymbol
 		filled=$?
+		if [ $filled -eq $FALSE ]
+		then
+			echo "position you have entered is already occupied"
+			echo "so enter new position"
+		fi 
 	done
-	getDecision $row $column
+	getWinTieTurn $row $column
 	result=$?
 	if [ $result = $WON ]
 	then
